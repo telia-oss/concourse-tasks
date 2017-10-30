@@ -1,0 +1,77 @@
+#!/bin/sh
+
+set -e
+
+setup() {
+    echo "Setting up..."
+    export DIR=$PWD
+    export AWS_ACCESS_KEY_ID=$access_key
+    export AWS_SECRET_ACCESS_KEY=$secret_key
+    cd $DIR/source/$directory
+}
+
+copy_output() {
+    echo "Copying output..."
+    cp -r $DIR/source/$directory $DIR/terraform
+}
+
+terraform_fmt() {
+    echo "Running terraform fmt..."
+    if ! terraform fmt -check=true; then
+        echo "Some terraform files need be formatted, run 'terraform fmt' to fix."
+        exit 1
+    fi
+}
+
+terraform_get() {
+    echo "Running terraform get..."
+    terraform get
+}
+
+terraform_init() {
+    echo "Running terraform init..."
+    terraform init -input=false -lock-timeout=$lock_timeout
+}
+
+terraform_validate() {
+    echo "Running terraform validate..."
+    terraform validate
+}
+
+terraform_destroy() {
+    echo "Running terraform (forced) destroy..."
+    terraform destroy -force -refresh=true -lock-timeout=$lock_timeout
+}
+
+terraform_cmd() {
+    echo "Running terraform $command..."
+    terraform $command -refresh=true -auto-approve=true -lock-timeout=$lock_timeout
+}
+
+terraform_tests() {
+    echo "Starting terraform tests..."
+    terraform_fmt
+    terraform_init
+    terraform_validate
+    copy_output
+}
+
+main() {
+    if [ -z "$command" ]; then
+        echo "Command is a required parameter and must be set."
+        exit 1
+    fi
+    setup
+    case "$command" in
+        'fmt'      ) terraform_fmt ;;
+        'get'      ) terraform_get && copy_output ;;
+        'init'     ) terraform_init && copy_output ;;
+        'validate' ) terraform_init && terraform_validate ;;
+        'destroy'  ) terraform_init && terraform_destroy ;;
+        'tests'    ) terraform_tests ;;
+        *          ) terraform_init && terraform_cmd ;;
+    esac
+    echo "Done!"
+}
+
+main

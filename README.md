@@ -1,2 +1,3 @@
-# divx-concourse-tasks
-Common concourse tasks for Divx.
+# Divx concourse tasks
+
+This repository contains reusable concourse tasks... `common-tasks`.
