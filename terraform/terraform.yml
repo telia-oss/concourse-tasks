@@ -21,4 +21,4 @@ params:
   secret_key:
 
 run:
-  path: common-tasks/ci/tasks/terraform.sh
+  path: common-tasks/terraform/terraform.sh
