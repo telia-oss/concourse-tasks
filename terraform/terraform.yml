@@ -4,7 +4,7 @@ image_resource:
   type: docker-image
   source:
     repository: hashicorp/terraform
-    tag: "0.10.7"
+    tag: "0.10.8"
 
 inputs:
 - name: source
