@@ -10,16 +10,35 @@ setup() {
     cd $DIR/source/$directory
 }
 
-copy_output() {
-    echo "Copying output..."
-    cp -r $DIR/source/$directory $DIR/terraform
-}
-
 load_cache() {
     if [ "$cache" = "true" ] && [ -d "$DIR/source/cache/.terraform" ]; then
         echo "Getting .terraform folder from cache..."
         mv $DIR/source/cache/.terraform $DIR/source/$directory
     fi
+}
+
+save_cache() {
+    if [ -d "$DIR/source/$directory/.terraform" ]; then
+        echo "Caching .terraform folder..."
+        mv $DIR/source/$directory/.terraform $DIR/source/cache
+    fi
+    if [ -f "/usr/local/bin/tflint" ]; then
+        echo "Caching tflint..."
+        mv /usr/local/bin/tflint $DIR/source/cache
+    fi
+}
+
+terraform_tflint() {
+    if [ "$cache" = "true" ] && [ -f "$DIR/source/cache/tflint" ]; then
+        echo "Getting tflint from cache..."
+        mv $DIR/source/cache/tflint /usr/local/bin
+    else
+        echo "Downloading and unzipping tflint..."
+        curl -s -L -o /tmp/tflint.zip https://github.com/wata727/tflint/releases/download/v0.5.1/tflint_linux_amd64.zip
+        unzip -o -q /tmp/tflint.zip -d /usr/local/bin
+    fi
+    echo "Running tflint..."
+    tflint
 }
 
 terraform_fmt() {
@@ -62,7 +81,7 @@ terraform_tests() {
     terraform_fmt
     terraform_get
     terraform_validate
-    copy_output
+    terraform_tflint
 }
 
 main() {
@@ -73,16 +92,17 @@ main() {
     setup
     case "$command" in
         'fmt'      ) terraform_fmt ;;
-        'get'      ) terraform_get && copy_output ;;
-        'init'     ) terraform_init && copy_output ;;
+        'get'      ) terraform_get ;;
+        'init'     ) terraform_init ;;
         'validate' ) terraform_get && terraform_validate ;;
+        'tflint'   ) terraform_get && terraform_tflint ;;
         'destroy'  ) terraform_init && terraform_destroy ;;
+        'test'     ) terraform_tests ;;
         'tests'    ) terraform_tests ;;
         *          ) terraform_init && terraform_cmd ;;
     esac
     if [ "$cache" = "true" ]; then
-        echo "Caching .terraform folder..."
-        mv $DIR/source/$directory/.terraform $DIR/source/cache
+        save_cache
     fi
     echo "Done!"
 }
