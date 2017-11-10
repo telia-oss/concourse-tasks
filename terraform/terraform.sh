@@ -51,7 +51,6 @@ terraform_cmd() {
 terraform_tests() {
     echo "Starting terraform tests..."
     terraform_fmt
-    terraform_init
     terraform_validate
     copy_output
 }
@@ -66,7 +65,7 @@ main() {
         'fmt'      ) terraform_fmt ;;
         'get'      ) terraform_get && copy_output ;;
         'init'     ) terraform_init && copy_output ;;
-        'validate' ) terraform_init && terraform_validate ;;
+        'validate' ) terraform_validate ;;
         'destroy'  ) terraform_init && terraform_destroy ;;
         'tests'    ) terraform_tests ;;
         *          ) terraform_init && terraform_cmd ;;
