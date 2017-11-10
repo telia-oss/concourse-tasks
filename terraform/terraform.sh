@@ -24,8 +24,8 @@ terraform_fmt() {
 }
 
 terraform_get() {
-    echo "Running terraform get..."
-    terraform get
+    echo "Running terraform get (init without backend)..."
+    terraform init -backend=false -input=false
 }
 
 terraform_init() {
@@ -65,7 +65,7 @@ main() {
         'fmt'      ) terraform_fmt ;;
         'get'      ) terraform_get && copy_output ;;
         'init'     ) terraform_init && copy_output ;;
-        'validate' ) terraform_validate ;;
+        'validate' ) terraform_get && terraform_validate ;;
         'destroy'  ) terraform_init && terraform_destroy ;;
         'tests'    ) terraform_tests ;;
         *          ) terraform_init && terraform_cmd ;;
