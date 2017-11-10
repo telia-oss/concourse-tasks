@@ -51,6 +51,7 @@ terraform_cmd() {
 terraform_tests() {
     echo "Starting terraform tests..."
     terraform_fmt
+    terraform_get
     terraform_validate
     copy_output
 }
