@@ -7,12 +7,20 @@ setup() {
     export DIR=$PWD
     export AWS_ACCESS_KEY_ID=$access_key
     export AWS_SECRET_ACCESS_KEY=$secret_key
+    if [ "$cache" = "true" ] && [ -d "$DIR/source/cache/.terraform" ]; then
+        echo "Getting .terraform folder from cache..."
+        mv $DIR/source/cache/.terraform $DIR/source/$directory
+    fi
     cd $DIR/source/$directory
 }
 
 copy_output() {
     echo "Copying output..."
     cp -r $DIR/source/$directory $DIR/terraform
+}
+
+cache_terraform() {
+    echo "Caching "
 }
 
 terraform_fmt() {
@@ -71,6 +79,10 @@ main() {
         'tests'    ) terraform_tests ;;
         *          ) terraform_init && terraform_cmd ;;
     esac
+    if [ "$cache" = "true" ]; then
+        echo "Caching .terraform folder..."
+        mv $DIR/source/$directory/.terraform $DIR/source/cache
+    fi
     echo "Done!"
 }
 

@@ -16,9 +16,13 @@ outputs:
 params:
   command:
   directory: terraform
+  cache: true
   lock_timeout: 5m
   access_key:
   secret_key:
+
+caches:
+- path: source/cache
 
 run:
   path: common-tasks/terraform/terraform.sh
