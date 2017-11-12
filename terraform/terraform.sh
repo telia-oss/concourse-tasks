@@ -117,6 +117,10 @@ main() {
 
     setup
     for directory in $directories; do
+        if [ ! -d "$DIR/source/$directory" ]; then
+            failed "Directory not found: $directory"
+            exit 1
+        fi
         cd $DIR/source/$directory
         header "Current directory: $directory"
         case "$command" in
