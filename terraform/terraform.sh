@@ -2,20 +2,19 @@
 
 set -e
 
-GREEN='\033[1;32m'
-RED='\033[0;31m'
-NC='\033[0m'
-
-header() {
-    echo -e "\e[1m$1\e[0m"
-}
-
-failed() {
-    echo -e "${RED}✗ $1${NC}"
-}
-
-passed() {
-    echo -e "${GREEN}√ $1${NC}"
+print() {
+    local GREEN='\033[1;32m'
+    local YELLOW='\033[1;33m'
+    local RED='\033[0;31m'
+    local NC='\033[0m'
+    local BOLD='\e[1m'
+    local REGULAR='\e[0m'
+    case "$1" in
+        'failure' ) echo -e "${RED}✗ $2${NC}" ;;
+        'success' ) echo -e "${GREEN}√ $2${NC}" ;;
+        'warning' ) echo -e "${YELLOW}⚠ $2${NC}" ;;
+        'header'  ) echo -e "${BOLD}$2${REGULAR}" ;;
+    esac
 }
 
 setup() {
@@ -25,26 +24,31 @@ setup() {
     mkdir -p $DIR/source/cache
 }
 
-setup_tflint() {
+install_tflint() {
+    curl -s -L -o /tmp/tflint.zip https://github.com/wata727/tflint/releases/download/v0.5.1/tflint_linux_amd64.zip
+    unzip -o -q /tmp/tflint.zip -d $DIR/source/cache
+    ln -s $DIR/source/cache/tflint /usr/local/bin/tflint
+    print success "Download and install tflint"
+}
+
+load_tflint() {
     if [ "$cache" = "true" ] && [ -f "$DIR/source/cache/tflint" ]; then
         ln -s $DIR/source/cache/tflint /usr/local/bin
-        passed "Load tflint from cache"
+        print success "Load tflint from cache"
     else
         if [ "$cache" = "true" ]; then
-            failed "Load tflint from cache (file not found)."
+            print warning "Load tflint from cache (file not found)"
         fi
-
-        curl -s -L -o /tmp/tflint.zip https://github.com/wata727/tflint/releases/download/v0.5.1/tflint_linux_amd64.zip
-        unzip -o -q /tmp/tflint.zip -d $DIR/source/cache
-        ln -s $DIR/source/cache/tflint /usr/local/bin/tflint
-        passed "Download and install tflint"
+        install_tflint
     fi
 }
 
 load_cache() {
     if [ "$cache" = "true" ] && [ -d "$DIR/source/cache/$directory/.terraform" ]; then
         mv $DIR/source/cache/$directory/.terraform $DIR/source/$directory
-        passed "Load cache"
+        print success "Load .terraform from cache"
+    else
+        print warning "Load .terraform from cache (file not found)"
     fi
 }
 
@@ -52,53 +56,52 @@ save_cache() {
     if [ -d "$DIR/source/$directory/.terraform" ]; then
         mkdir -p $DIR/source/cache/$directory
         mv $DIR/source/$directory/.terraform $DIR/source/cache/$directory
-        passed "Save cache"
+        print success "Save cache"
     fi
 }
 
 terraform_tflint() {
     if [ ! -f "/usr/local/bin/tflint" ]; then
-        setup_tflint
+        load_tflint
     fi
     tflint >> /dev/null
-    passed "tflint"
+    print success "tflint"
 }
 
 terraform_fmt() {
     if ! terraform fmt -check=true >> /dev/null; then
-        failed "terraform fmt (Some files need to be formatted, run 'terraform fmt' to fix.)"
+        print failure "terraform fmt (Some files need to be formatted, run 'terraform fmt' to fix.)"
         exit 1
     fi
-    passed "terraform fmt"
+    print success "terraform fmt"
 }
 
 terraform_get() {
     load_cache
     terraform init -backend=false -input=false >> /dev/null
-    passed "terraform get (init without backend)"
+    print success "terraform get (init without backend)"
 }
 
 terraform_init() {
     load_cache
     terraform init -input=false -lock-timeout=$lock_timeout >> /dev/null
-    passed "terraform init"
+    print success "terraform init"
 }
 
 terraform_validate() {
     terraform validate
-    passed "terraform validate"
+    print success "terraform validate"
 }
 
 terraform_destroy() {
     terraform destroy -force -refresh=true -lock-timeout=$lock_timeout
 }
 
-terraform_cmd() {
-    echo "Running terraform $command..."
-    terraform $command -refresh=true -auto-approve=true -lock-timeout=$lock_timeout
+terraform_apply() {
+    terraform apply -refresh=true -auto-approve=true -lock-timeout=$lock_timeout
 }
 
-terraform_tests() {
+terraform_test() {
     terraform_fmt
     terraform_get
     terraform_validate
@@ -118,21 +121,22 @@ main() {
     setup
     for directory in $directories; do
         if [ ! -d "$DIR/source/$directory" ]; then
-            failed "Directory not found: $directory"
+            print failure "Directory not found: $directory"
             exit 1
         fi
         cd $DIR/source/$directory
-        header "Current directory: $directory"
+        print header "Current directory: $directory"
         case "$command" in
             'fmt'      ) terraform_fmt ;;
             'get'      ) terraform_get ;;
             'init'     ) terraform_init ;;
             'validate' ) terraform_get && terraform_validate ;;
             'tflint'   ) terraform_get && terraform_tflint ;;
+            'test'     ) terraform_test ;;
+            'tests'    ) terraform_test ;;
             'destroy'  ) terraform_init && terraform_destroy ;;
-            'test'     ) terraform_tests ;;
-            'tests'    ) terraform_tests ;;
-            *          ) terraform_init && terraform_cmd ;;
+            'apply'    ) terraform_init && terraform_apply ;;
+            *          ) echo "Command not supported: $command" && exit 1;;
         esac
         if [ "$cache" = "true" ]; then
             save_cache
