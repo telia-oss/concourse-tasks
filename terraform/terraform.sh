@@ -2,72 +2,94 @@
 
 set -e
 
+GREEN='\033[1;32m'
+RED='\033[0;31m'
+NC='\033[0m'
+
+header() {
+    echo -e "\e[1m$1\e[0m"
+}
+
+failed() {
+    echo -e "${RED}✗ $1${NC}"
+}
+
+passed() {
+    echo -e "${GREEN}√ $1${NC}"
+}
+
 setup() {
-    echo "Setting up..."
     export DIR=$PWD
     export AWS_ACCESS_KEY_ID=$access_key
     export AWS_SECRET_ACCESS_KEY=$secret_key
+    mkdir -p $DIR/source/cache
+}
+
+setup_tflint() {
+    if [ "$cache" = "true" ] && [ -f "$DIR/source/cache/tflint" ]; then
+        ln -s $DIR/source/cache/tflint /usr/local/bin
+        passed "Load tflint from cache"
+    else
+        if [ "$cache" = "true" ]; then
+            failed "Load tflint from cache (file not found)."
+        fi
+
+        curl -s -L -o /tmp/tflint.zip https://github.com/wata727/tflint/releases/download/v0.5.1/tflint_linux_amd64.zip
+        unzip -o -q /tmp/tflint.zip -d $DIR/source/cache
+        ln -s $DIR/source/cache/tflint /usr/local/bin/tflint
+        passed "Download and install tflint"
+    fi
 }
 
 load_cache() {
     if [ "$cache" = "true" ] && [ -d "$DIR/source/cache/$directory/.terraform" ]; then
-        echo "Getting .terraform folder from cache..."
         mv $DIR/source/cache/$directory/.terraform $DIR/source/$directory
+        passed "Load cache"
     fi
 }
 
 save_cache() {
     if [ -d "$DIR/source/$directory/.terraform" ]; then
-        echo "Caching .terraform folder..."
         mkdir -p $DIR/source/cache/$directory
         mv $DIR/source/$directory/.terraform $DIR/source/cache/$directory
-    fi
-    if [ -f "/usr/local/bin/tflint" ]; then
-        echo "Caching tflint..."
-        mv /usr/local/bin/tflint $DIR/source/cache
+        passed "Save cache"
     fi
 }
 
 terraform_tflint() {
-    if [ "$cache" = "true" ] && [ -f "$DIR/source/cache/tflint" ]; then
-        echo "Getting tflint from cache..."
-        mv $DIR/source/cache/tflint /usr/local/bin
-    else
-        echo "Downloading and unzipping tflint..."
-        curl -s -L -o /tmp/tflint.zip https://github.com/wata727/tflint/releases/download/v0.5.1/tflint_linux_amd64.zip
-        unzip -o -q /tmp/tflint.zip -d /usr/local/bin
+    if [ ! -f "/usr/local/bin/tflint" ]; then
+        setup_tflint
     fi
-    echo "Running tflint..."
-    tflint
+    tflint >> /dev/null
+    passed "tflint"
 }
 
 terraform_fmt() {
-    echo "Running terraform fmt..."
-    if ! terraform fmt -check=true; then
-        echo "Some terraform files need be formatted, run 'terraform fmt' to fix."
+    if ! terraform fmt -check=true >> /dev/null; then
+        failed "terraform fmt (Some files need to be formatted, run 'terraform fmt' to fix.)"
         exit 1
     fi
+    passed "terraform fmt"
 }
 
 terraform_get() {
     load_cache
-    echo "Running terraform get (init without backend)..."
-    terraform init -backend=false -input=false
+    terraform init -backend=false -input=false >> /dev/null
+    passed "terraform get (init without backend)"
 }
 
 terraform_init() {
     load_cache
-    echo "Running terraform init..."
-    terraform init -input=false -lock-timeout=$lock_timeout
+    terraform init -input=false -lock-timeout=$lock_timeout >> /dev/null
+    passed "terraform init"
 }
 
 terraform_validate() {
-    echo "Running terraform validate..."
     terraform validate
+    passed "terraform validate"
 }
 
 terraform_destroy() {
-    echo "Running terraform (forced) destroy..."
     terraform destroy -force -refresh=true -lock-timeout=$lock_timeout
 }
 
@@ -77,7 +99,6 @@ terraform_cmd() {
 }
 
 terraform_tests() {
-    echo "Starting terraform tests..."
     terraform_fmt
     terraform_get
     terraform_validate
@@ -97,7 +118,7 @@ main() {
     setup
     for directory in $directories; do
         cd $DIR/source/$directory
-        echo "Current directory: $directory"
+        header "Current directory: $directory"
         case "$command" in
             'fmt'      ) terraform_fmt ;;
             'get'      ) terraform_get ;;
@@ -113,7 +134,6 @@ main() {
             save_cache
         fi
     done
-    echo "Done!"
 }
 
 main
