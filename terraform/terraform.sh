@@ -7,20 +7,20 @@ setup() {
     export DIR=$PWD
     export AWS_ACCESS_KEY_ID=$access_key
     export AWS_SECRET_ACCESS_KEY=$secret_key
-    cd $DIR/source/$directory
 }
 
 load_cache() {
-    if [ "$cache" = "true" ] && [ -d "$DIR/source/cache/.terraform" ]; then
+    if [ "$cache" = "true" ] && [ -d "$DIR/source/cache/$directory/.terraform" ]; then
         echo "Getting .terraform folder from cache..."
-        mv $DIR/source/cache/.terraform $DIR/source/$directory
+        mv $DIR/source/cache/$directory/.terraform $DIR/source/$directory
     fi
 }
 
 save_cache() {
     if [ -d "$DIR/source/$directory/.terraform" ]; then
         echo "Caching .terraform folder..."
-        mv $DIR/source/$directory/.terraform $DIR/source/cache
+        mkdir -p $DIR/source/cache/$directory
+        mv $DIR/source/$directory/.terraform $DIR/source/cache/$directory
     fi
     if [ -f "/usr/local/bin/tflint" ]; then
         echo "Caching tflint..."
@@ -89,21 +89,30 @@ main() {
         echo "Command is a required parameter and must be set."
         exit 1
     fi
-    setup
-    case "$command" in
-        'fmt'      ) terraform_fmt ;;
-        'get'      ) terraform_get ;;
-        'init'     ) terraform_init ;;
-        'validate' ) terraform_get && terraform_validate ;;
-        'tflint'   ) terraform_get && terraform_tflint ;;
-        'destroy'  ) terraform_init && terraform_destroy ;;
-        'test'     ) terraform_tests ;;
-        'tests'    ) terraform_tests ;;
-        *          ) terraform_init && terraform_cmd ;;
-    esac
-    if [ "$cache" = "true" ]; then
-        save_cache
+    if [ -z "$directories" ]; then
+        echo "No directories provided. Please set the parameter."
+        exit 1
     fi
+
+    setup
+    for directory in $directories; do
+        cd $DIR/source/$directory
+        echo "Current directory: $directory"
+        case "$command" in
+            'fmt'      ) terraform_fmt ;;
+            'get'      ) terraform_get ;;
+            'init'     ) terraform_init ;;
+            'validate' ) terraform_get && terraform_validate ;;
+            'tflint'   ) terraform_get && terraform_tflint ;;
+            'destroy'  ) terraform_init && terraform_destroy ;;
+            'test'     ) terraform_tests ;;
+            'tests'    ) terraform_tests ;;
+            *          ) terraform_init && terraform_cmd ;;
+        esac
+        if [ "$cache" = "true" ]; then
+            save_cache
+        fi
+    done
     echo "Done!"
 }
 

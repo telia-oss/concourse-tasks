@@ -21,7 +21,7 @@
 docker run \
   --volume $PWD:/source/task \
   --entrypoint source/task/terraform.sh \
-  --env directory=task/test \
+  --env directories="task/test/success task/test/failure" \
   --env command=test \
   --env cache=true \
   hashicorp/terraform
