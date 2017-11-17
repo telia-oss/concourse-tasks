@@ -18,9 +18,9 @@ print() {
 }
 
 setup() {
-    export DIR=$PWD
-    export AWS_ACCESS_KEY_ID=$access_key
-    export AWS_SECRET_ACCESS_KEY=$secret_key
+    export DIR="$PWD"
+    export AWS_ACCESS_KEY_ID="${access_key}"
+    export AWS_SECRET_ACCESS_KEY="${secret_key}"
     mkdir -p $DIR/source/cache
 }
 
