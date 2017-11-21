@@ -78,7 +78,9 @@ terraform_fmt() {
 
 terraform_get() {
     load_cache
+    # NOTE: We are using init here to download providers in addition to modules.
     terraform init -backend=false -input=false >> /dev/null
+    terraform get -update=true >> /dev/null
     print success "terraform get (init without backend)"
 }
 
