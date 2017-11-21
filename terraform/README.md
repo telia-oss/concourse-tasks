@@ -6,7 +6,7 @@
 - task: terraform-test
   attempts: 2
   timeout: 10m
-  file: common-tasks/terraform/terraform.yml
+  file: common-tasks/terraform/0.10.8.yml
   input_mapping: { source: git }
   params:
     command: test
