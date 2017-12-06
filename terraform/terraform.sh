@@ -107,7 +107,7 @@ terraform_test() {
     terraform_fmt
     terraform_get
     terraform_validate
-    terraform_tflint
+    # terraform_tflint
 }
 
 main() {
