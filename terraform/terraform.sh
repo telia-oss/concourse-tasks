@@ -90,11 +90,6 @@ terraform_init() {
     print success "terraform init"
 }
 
-terraform_validate() {
-    terraform validate
-    print success "terraform validate"
-}
-
 terraform_destroy() {
     terraform destroy -force -refresh=true -lock-timeout=$lock_timeout
 }
@@ -106,7 +101,13 @@ terraform_apply() {
 terraform_test() {
     terraform_fmt
     terraform_get
-    terraform_validate
+    if [ "$1" == "module" ]; then
+        terraform validate -check-variables=false
+        print success "terraform validate (not including variables)"
+    else
+        terraform validate
+        print success "terraform validate"
+    fi
     # terraform_tflint
 }
 
@@ -129,16 +130,15 @@ main() {
         cd $DIR/source/$directory
         print header "Current directory: $directory"
         case "$command" in
-            'fmt'      ) terraform_fmt ;;
-            'get'      ) terraform_get ;;
-            'init'     ) terraform_init ;;
-            'validate' ) terraform_get && terraform_validate ;;
-            'tflint'   ) terraform_get && terraform_tflint ;;
-            'test'     ) terraform_test ;;
-            'tests'    ) terraform_test ;;
-            'destroy'  ) terraform_init && terraform_destroy ;;
-            'apply'    ) terraform_init && terraform_apply ;;
-            *          ) echo "Command not supported: $command" && exit 1;;
+            'fmt'         ) terraform_fmt ;;
+            'get'         ) terraform_get ;;
+            'init'        ) terraform_init ;;
+            'tflint'      ) terraform_get && terraform_tflint ;;
+            'test'        ) terraform_test ;;
+            'test-module' ) terraform_test module ;;
+            'destroy'     ) terraform_init && terraform_destroy ;;
+            'apply'       ) terraform_init && terraform_apply ;;
+            *             ) echo "Command not supported: $command" && exit 1;;
         esac
         if [ "$cache" = "true" ]; then
             save_cache
