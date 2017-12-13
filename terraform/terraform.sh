@@ -94,6 +94,10 @@ terraform_destroy() {
     terraform destroy -force -refresh=true -lock-timeout=$lock_timeout
 }
 
+terraform_plan() {
+    terraform plan -lock=false
+}
+
 terraform_apply() {
     terraform apply -refresh=true -auto-approve=true -lock-timeout=$lock_timeout
 }
@@ -137,6 +141,7 @@ main() {
             'test'        ) terraform_test ;;
             'test-module' ) terraform_test module ;;
             'destroy'     ) terraform_init && terraform_destroy ;;
+            'plan'        ) terraform_init && terraform_plan ;;
             'apply'       ) terraform_init && terraform_apply ;;
             *             ) echo "Command not supported: $command" && exit 1;;
         esac
