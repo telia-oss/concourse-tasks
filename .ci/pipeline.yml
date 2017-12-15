@@ -80,8 +80,8 @@ resources:
     type: pull-request
     check_every: 30s
     source:
-      repo: TeliaSoneraNorge/divx-terraform-modules
-      uri: git@github.com:TeliaSoneraNorge/divx-terraform-modules.git
+      repo: TeliaSoneraNorge/divx-concourse-tasks
+      uri: git@github.com:TeliaSoneraNorge/divx-concourse-tasks.git
       ignore_paths: [ .ci ]
       access_token: ((divx-github-access-token))
       private_key: ((divx-concourse-tasks-deploy-key))
