@@ -3,13 +3,13 @@ meta:
   concourse:
   - test-failure: &test-failure
       timeout: 10m
-      input_mapping: { source: pull-request }
+      input_mapping: { source: pull-request, common-tasks: pull-request }
       on_success:
         put: pull-request
         params: {path: pull-request, status: failure}
   - test-success: &test-success
       timeout: 10m
-      input_mapping: { source: pull-request }
+      input_mapping: { source: pull-request, common-tasks: pull-request }
       on_failure:
         put: pull-request
         params: {path: pull-request, status: failure}
@@ -40,13 +40,13 @@ jobs:
           directories: |
             terraform/test/success
       - try:
-        task: terraform-0.10.8-failure
-        <<: *test-failure
-        file: pull-request/terraform/0.11.1.yml
-        params:
-          command: test
-          directories: |
-            terraform/test/failure
+          task: terraform-0.10.8-failure
+          <<: *test-failure
+          file: pull-request/terraform/0.11.1.yml
+          params:
+            command: test
+            directories: |
+              terraform/test/failure
 
       - task: terraform-0.10.8-success
         <<: *test-success
@@ -56,13 +56,13 @@ jobs:
           directories: |
             terraform/test/success
       - try:
-        task: terraform-0.10.8-failure
-        <<: *test-failure
-        file: pull-request/terraform/0.10.8.yml
-        params:
-          command: test
-          directories: |
-            terraform/test/failure
+          task: terraform-0.10.8-failure
+          <<: *test-failure
+          file: pull-request/terraform/0.10.8.yml
+          params:
+            command: test
+            directories: |
+              terraform/test/failure
 
     - put: pull-request
       params: {path: pull-request-write, status: success}
