@@ -1,0 +1,88 @@
+---
+meta:
+  concourse:
+  - test-failure: &test-failure
+      timeout: 10m
+      file: pull-request/terraform/0.11.1.yml
+      input_mapping: { source: pull-request }
+      on_success:
+        put: pull-request
+        params: {path: pull-request, status: failure}
+  - test-success: &test-success
+      timeout: 10m
+      file: pull-request/terraform/0.11.1.yml
+      input_mapping: { source: pull-request }
+      on_failure:
+        put: pull-request
+        params: {path: pull-request, status: failure}
+
+groups:
+  - name: PR
+    jobs:
+    - test-it
+
+jobs:
+  - name: test-it
+    plan:
+    - aggregate:
+      - get: pull-request
+        trigger: true
+        version: every
+        params: {fetch_merge: true}
+      - get: pull-request-write
+        resource: pull-request
+    - put: pull-request
+      params: {path: pull-request-write, status: pending}
+    - aggregate:
+      - task: terraform-0.11.1-success
+        <<: *test-success
+        file: pull-request/terraform/0.11.1.yml
+        params:
+          command: test
+          directories: |
+            terraform/test/success
+      - try:
+        task: terraform-0.10.8-failure
+        <<: *test-failure
+        file: pull-request/terraform/0.11.1.yml
+        params:
+          command: test
+          directories: |
+            terraform/test/failure
+
+      - task: terraform-0.10.8-success
+        <<: *test-success
+        file: pull-request/terraform/0.10.8.yml
+        params:
+          command: test
+          directories: |
+            terraform/test/success
+      - try:
+        task: terraform-0.10.8-failure
+        <<: *test-failure
+        file: pull-request/terraform/0.10.8.yml
+        params:
+          command: test
+          directories: |
+            terraform/test/failure
+
+    - put: pull-request
+      params: {path: pull-request-write, status: success}
+
+resource_types:
+  - name: pull-request
+    type: docker-image
+    source:
+      repository: jtarchie/pr
+
+resources:
+  - name: pull-request
+    type: pull-request
+    check_every: 30s
+    source:
+      repo: TeliaSoneraNorge/divx-terraform-modules
+      uri: git@github.com:TeliaSoneraNorge/divx-terraform-modules.git
+      ignore_paths: [ .ci ]
+      access_token: ((divx-github-access-token))
+      private_key: ((divx-concourse-tasks-deploy-key))
+      every: true
