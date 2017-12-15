@@ -3,14 +3,12 @@ meta:
   concourse:
   - test-failure: &test-failure
       timeout: 10m
-      file: pull-request/terraform/0.11.1.yml
       input_mapping: { source: pull-request }
       on_success:
         put: pull-request
         params: {path: pull-request, status: failure}
   - test-success: &test-success
       timeout: 10m
-      file: pull-request/terraform/0.11.1.yml
       input_mapping: { source: pull-request }
       on_failure:
         put: pull-request
