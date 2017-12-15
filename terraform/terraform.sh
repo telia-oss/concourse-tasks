@@ -103,6 +103,7 @@ terraform_apply() {
 }
 
 terraform_test() {
+    exit 1
     terraform_fmt
     terraform_get
     if [ "$1" == "module" ]; then
