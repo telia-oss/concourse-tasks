@@ -18,8 +18,5 @@ params:
   access_key:
   secret_key:
 
-caches:
-- path: source/cache
-
 run:
   path: common-tasks/terraform/terraform.sh
