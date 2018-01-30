@@ -1,0 +1,27 @@
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: maven
+    tag: "alpine"
+
+inputs:
+- name: source
+- name: common-tasks
+
+params:
+  directory:
+  release_url:
+  snapshot_url:
+  username:
+  password:
+
+caches:
+  - path: .m2/
+
+outputs:
+  - name: jar-files
+
+run:
+  path: common-tasks/maven/install.sh
