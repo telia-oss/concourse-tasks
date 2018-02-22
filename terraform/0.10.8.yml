@@ -13,7 +13,6 @@ inputs:
 params:
   command:
   directories:
-  cache: false
   lock_timeout: 5m
   access_key:
   secret_key:
