@@ -17,6 +17,7 @@ params:
   lock_timeout: 5m
   access_key:
   secret_key:
+  session_token:
 
 run:
   path: common-tasks/terraform/terraform.sh

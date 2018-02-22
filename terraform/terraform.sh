@@ -21,6 +21,7 @@ setup() {
     export DIR="$PWD"
     export AWS_ACCESS_KEY_ID="${access_key}"
     export AWS_SECRET_ACCESS_KEY="${secret_key}"
+    export AWS_SESSION_TOKEN="${session_token}"
     mkdir -p $DIR/source/cache
 }
 
