@@ -85,6 +85,6 @@ resources:
       repo: TeliaSoneraNorge/divx-concourse-tasks
       uri: git@github.com:TeliaSoneraNorge/divx-concourse-tasks.git
       ignore_paths: [ .ci ]
-      access_token: ((divx-github-access-token))
+      access_token: ((github-access-token))
       private_key: ((divx-concourse-tasks-deploy-key))
       every: true
