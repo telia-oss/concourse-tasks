@@ -26,7 +26,7 @@ setup() {
 
 install_tflint() {
     curl -s -L -o /tmp/tflint.zip https://github.com/wata727/tflint/releases/download/v0.5.4/tflint_linux_amd64.zip
-    unzip -o -q /tmp/tflint.zip -d /usr/local/bin/tflint
+    unzip -o -q /tmp/tflint.zip -d /usr/local/bin
     print success "Download and install tflint"
 }
 
