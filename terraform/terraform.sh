@@ -22,13 +22,11 @@ setup() {
     export AWS_ACCESS_KEY_ID="${access_key}"
     export AWS_SECRET_ACCESS_KEY="${secret_key}"
     export AWS_SESSION_TOKEN="${session_token}"
-    mkdir -p $DIR/source/cache
 }
 
 install_tflint() {
     curl -s -L -o /tmp/tflint.zip https://github.com/wata727/tflint/releases/download/v0.5.4/tflint_linux_amd64.zip
-    unzip -o -q /tmp/tflint.zip -d $DIR/source/cache
-    ln -s $DIR/source/cache/tflint /usr/local/bin/tflint
+    unzip -o -q /tmp/tflint.zip -d /usr/local/bin/tflint
     print success "Download and install tflint"
 }
 
@@ -61,12 +59,13 @@ terraform_init() {
 
 terraform_plan() {
     terraform_init
-    terraform plan -lock=false
+    terraform plan -lock=false -out="${DIR}/terraform/plan"
 }
 
 terraform_apply() {
     terraform_init
     terraform apply -refresh=true -auto-approve=true -lock-timeout=$lock_timeout
+    terraform output -json > ${DIR}/terraform/output.json
 }
 
 terraform_test_module() {
