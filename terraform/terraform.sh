@@ -22,48 +22,17 @@ setup() {
     export AWS_ACCESS_KEY_ID="${access_key}"
     export AWS_SECRET_ACCESS_KEY="${secret_key}"
     export AWS_SESSION_TOKEN="${session_token}"
-    mkdir -p $DIR/source/cache
 }
 
 install_tflint() {
-    curl -s -L -o /tmp/tflint.zip https://github.com/wata727/tflint/releases/download/v0.5.3/tflint_linux_amd64.zip
-    unzip -o -q /tmp/tflint.zip -d $DIR/source/cache
-    ln -s $DIR/source/cache/tflint /usr/local/bin/tflint
+    curl -s -L -o /tmp/tflint.zip https://github.com/wata727/tflint/releases/download/v0.5.4/tflint_linux_amd64.zip
+    unzip -o -q /tmp/tflint.zip -d /usr/local/bin
     print success "Download and install tflint"
-}
-
-load_tflint() {
-    if [ "$cache" = "true" ] && [ -f "$DIR/source/cache/tflint" ]; then
-        ln -s $DIR/source/cache/tflint /usr/local/bin
-        print success "Load tflint from cache"
-    else
-        if [ "$cache" = "true" ]; then
-            print warning "Load tflint from cache (file not found)"
-        fi
-        install_tflint
-    fi
-}
-
-load_cache() {
-    if [ "$cache" = "true" ] && [ -d "$DIR/source/cache/$directory/.terraform" ]; then
-        mv $DIR/source/cache/$directory/.terraform $DIR/source/$directory
-        print success "Load .terraform from cache"
-    else
-        print warning "Load .terraform from cache (file not found)"
-    fi
-}
-
-save_cache() {
-    if [ -d "$DIR/source/$directory/.terraform" ]; then
-        mkdir -p $DIR/source/cache/$directory
-        mv $DIR/source/$directory/.terraform $DIR/source/cache/$directory
-        print success "Save cache"
-    fi
 }
 
 terraform_tflint() {
     if [ ! -f "/usr/local/bin/tflint" ]; then
-        load_tflint
+        install_tflint
     fi
     tflint >> /dev/null
     print success "tflint"
@@ -78,43 +47,40 @@ terraform_fmt() {
 }
 
 terraform_get() {
-    # NOTE: Not using cache anymore because terraform somehow corrupts modules
-    # load_cache
     # NOTE: We are using init here to download providers in addition to modules.
     terraform init -backend=false -input=false >> /dev/null
-    # terraform get -update=true >> /dev/null
     print success "terraform get (init without backend)"
 }
 
 terraform_init() {
-    load_cache
     terraform init -input=false -lock-timeout=$lock_timeout >> /dev/null
     print success "terraform init"
 }
 
-terraform_destroy() {
-    terraform destroy -force -refresh=true -lock-timeout=$lock_timeout
-}
-
 terraform_plan() {
-    terraform plan -lock=false
+    terraform_init
+    terraform plan -lock=false -out="${DIR}/terraform/plan"
 }
 
 terraform_apply() {
+    terraform_init
     terraform apply -refresh=true -auto-approve=true -lock-timeout=$lock_timeout
+    terraform output -json > ${DIR}/terraform/output.json
+}
+
+terraform_test_module() {
+    terraform_fmt
+    terraform_get
+    terraform validate -check-variables=false
+    print success "terraform validate (not including variables)"
 }
 
 terraform_test() {
     terraform_fmt
     terraform_get
-    if [ "$1" == "module" ]; then
-        terraform validate -check-variables=false
-        print success "terraform validate (not including variables)"
-    else
-        terraform validate
-        print success "terraform validate"
-        terraform_tflint
-    fi
+    terraform validate
+    print success "terraform validate"
+    terraform_tflint
 }
 
 main() {
@@ -136,20 +102,12 @@ main() {
         cd $DIR/source/$directory
         print header "Current directory: $directory"
         case "$command" in
-            'fmt'         ) terraform_fmt ;;
-            'get'         ) terraform_get ;;
-            'init'        ) terraform_init ;;
-            'tflint'      ) terraform_get && terraform_tflint ;;
             'test'        ) terraform_test ;;
-            'test-module' ) terraform_test module ;;
-            'destroy'     ) terraform_init && terraform_destroy ;;
-            'plan'        ) terraform_init && terraform_plan ;;
-            'apply'       ) terraform_init && terraform_apply ;;
+            'test-module' ) terraform_test_module ;;
+            'plan'        ) terraform_plan ;;
+            'apply'       ) terraform_apply ;;
             *             ) echo "Command not supported: $command" && exit 1;;
         esac
-        if [ "$cache" = "true" ]; then
-            save_cache
-        fi
     done
 }
 
