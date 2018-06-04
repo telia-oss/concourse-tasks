@@ -22,6 +22,15 @@ setup() {
     export AWS_ACCESS_KEY_ID="${access_key}"
     export AWS_SECRET_ACCESS_KEY="${secret_key}"
     export AWS_SESSION_TOKEN="${session_token}"
+
+    if [ "${cache}" = "true" ]; then
+        export TF_DATA_DIR="${DIR}/terraform-cache"
+        if [ -z "$(ls -A ${DIR}/terraform-cache)" ]; then
+            print warning "cache enabled but empty (fresh worker)"
+        else
+            print success "cache enabled and found existing cache"
+        fi
+    fi
 }
 
 install_tflint() {
@@ -59,7 +68,12 @@ terraform_init() {
 
 terraform_plan() {
     terraform_init
-    terraform plan -lock=false -out="${DIR}/terraform/plan"
+    terraform plan -lock=false -no-color | tee "${DIR}/terraform/full-plan"
+
+    # Create a sanitized plan for Github comments
+    echo "\`\`\`diff" > "${DIR}/terraform/plan"
+    sed -n -e '/------------------------------------------------------------------------/,$p' "${DIR}/terraform/full-plan" >> "${DIR}/terraform/plan"
+    echo "\`\`\`" >> "${DIR}/terraform/plan"
 }
 
 terraform_apply() {
