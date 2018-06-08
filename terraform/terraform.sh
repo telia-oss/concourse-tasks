@@ -22,14 +22,16 @@ setup() {
     export AWS_ACCESS_KEY_ID="${access_key}"
     export AWS_SECRET_ACCESS_KEY="${secret_key}"
     export AWS_SESSION_TOKEN="${session_token}"
+}
 
-    if [ "${cache}" = "true" ]; then
-        export TF_DATA_DIR="${DIR}/terraform-cache"
-        if [ -z "$(ls -A ${DIR}/terraform-cache)" ]; then
-            print warning "cache enabled but empty (fresh worker)"
-        else
-            print success "cache enabled and found existing cache"
-        fi
+setup_cache() {
+    export TF_DATA_DIR="${DIR}/terraform-cache/${1}"
+
+    mkdir -p "${TF_DATA_DIR}"
+    if [ -z "$(ls -A ${DIR}/terraform-cache/${1})" ]; then
+        print warning "cache enabled but empty (fresh worker)"
+    else
+        print success "cache enabled and found existing cache"
     fi
 }
 
@@ -118,6 +120,9 @@ main() {
         fi
         cd $DIR/source/$directory
         print header "Current directory: $directory"
+        if [ "$cache" = "true" ];then
+            setup_cache "$directory"
+        fi
         case "$command" in
             'test'        ) terraform_test ;;
             'test-module' ) terraform_test_module ;;
