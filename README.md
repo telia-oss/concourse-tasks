@@ -1,7 +1,7 @@
-# Divx Concourse Tasks
+# Concourse Tasks
 
-This repository contains reusable concourse tasks. Tasks in Concourse are essentially build steps which are 
-run within a container, and can be based off any image found on Docker Hub or in a private repository. This 
+This repository contains reusable concourse tasks. Tasks in Concourse are essentially build steps which are
+run within a container, and can be based off any image found on Docker Hub or in a private repository. This
 means that we get reproducible environments, and that tasks can be written in any language we'd like.
 
 The goal is to create tasks for common operations once in this repository, and then reuse them
@@ -16,7 +16,7 @@ resources:
   - name: common-tasks
     type: git
     source:
-      uri: git@github.com:TeliaSoneraNorge/divx-concourse-tasks.git
+      uri: git@github.com:telia-oss/concourse-tasks.git
       branch: master
 
 ```
@@ -35,11 +35,11 @@ jobs:
 
 ```
 
-In the example, we are pulling in just the `divx-concourse-tasks/terraform` directory and making it available
+In the example, we are pulling in just the `concourse-tasks/terraform` directory and making it available
 as `common-tasks/terraform` to tasks in our job. So to use the task we simply declare:
 
 ```yml
-    - task: divx-jump-account
+    - task: jump-account
       file: common-tasks/terraform/0.11.1.yml
       input_mapping: { source: master-branch }
       params:
@@ -51,9 +51,9 @@ as `common-tasks/terraform` to tasks in our job. So to use the task we simply de
 ```
 
 In the example, `file:` links to the task definition with the same name found in this repository, while
-`input_mapping` is used to align the [expected input](https://github.com/TeliaSoneraNorge/divx-concourse-tasks/blob/master/terraform/0.11.1.yml#L10)
-to the task with the `get:` resources. Everything under `params:` are parameters passed to and [expected by the task](https://github.com/TeliaSoneraNorge/divx-concourse-tasks/blob/master/terraform/0.11.1.yml#L13).
-You can see how the task will be run [here](https://github.com/TeliaSoneraNorge/divx-concourse-tasks/blob/master/terraform/terraform.sh#L105-L116).
+`input_mapping` is used to align the [expected input](https://github.com/telia-oss/concourse-tasks/blob/master/terraform/0.11.1.yml#L10)
+to the task with the `get:` resources. Everything under `params:` are parameters passed to and [expected by the task](https://github.com/telia-oss/concourse-tasks/blob/master/terraform/0.11.1.yml#L13).
+You can see how the task will be run [here](https://github.com/telia-oss/concourse-tasks/blob/master/terraform/terraform.sh#L105-L116).
 
 ## Issues
 

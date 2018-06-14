@@ -26,11 +26,8 @@ jobs:
       - get: pull-request
         trigger: true
         version: every
-        params: {fetch_merge: true}
-      - get: pull-request-write
-        resource: pull-request
     - put: pull-request
-      params: {path: pull-request-write, status: pending}
+      params: {path: pull-request, status: pending}
     - aggregate:
       - task: terraform-0.11.1-success
         <<: *test-success
@@ -69,22 +66,18 @@ jobs:
               terraform/test/failure
 
     - put: pull-request
-      params: {path: pull-request-write, status: success}
+      params: {path: pull-request, status: success}
 
 resource_types:
   - name: pull-request
     type: docker-image
     source:
-      repository: jtarchie/pr
+      repository: telia-oss/github-pr-resource
 
 resources:
   - name: pull-request
     type: pull-request
     check_every: 30s
     source:
-      repo: TeliaSoneraNorge/divx-concourse-tasks
-      uri: git@github.com:TeliaSoneraNorge/divx-concourse-tasks.git
-      ignore_paths: [ .ci ]
+      repository: telia-oss/concourse-tasks
       access_token: ((github-access-token))
-      private_key: ((divx-concourse-tasks-deploy-key))
-      every: true
