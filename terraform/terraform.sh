@@ -42,7 +42,7 @@ install_tflint() {
 }
 
 terraform_tflint() {
-    if [ ! -f "/usr/local/bin/tflint" ]; then
+    if ! command -v tflint >> /dev/null; then
         install_tflint
     fi
     tflint >> /dev/null
