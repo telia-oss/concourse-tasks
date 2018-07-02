@@ -35,20 +35,6 @@ setup_cache() {
     fi
 }
 
-install_tflint() {
-    curl -s -L -o /tmp/tflint.zip https://github.com/wata727/tflint/releases/download/v0.5.4/tflint_linux_amd64.zip
-    unzip -o -q /tmp/tflint.zip -d /usr/local/bin
-    print success "Download and install tflint"
-}
-
-terraform_tflint() {
-    if ! command -v tflint >> /dev/null; then
-        install_tflint
-    fi
-    tflint >> /dev/null
-    print success "tflint"
-}
-
 terraform_fmt() {
     if ! terraform fmt -check=true >> /dev/null; then
         print failure "terraform fmt (Some files need to be formatted, run 'terraform fmt' to fix.)"
@@ -99,7 +85,6 @@ terraform_test() {
     terraform_get
     terraform validate
     print success "terraform validate"
-    terraform_tflint
 }
 
 main() {
