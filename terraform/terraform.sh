@@ -49,6 +49,7 @@ terraform_init() {
 terraform_fmt() {
     unformatted_files=""
     find . -type f -name '*.tf' -not -path './**/.terraform/*' | while read f; do
+        echo "current file is: ${f}"
         if ! terraform fmt -check=true "${f}" >> /dev/null; then
             unformatted_files="${unformatted_files}\\n${f}"
         fi
