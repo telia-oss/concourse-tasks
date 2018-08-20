@@ -47,14 +47,16 @@ terraform_init() {
 }
 
 terraform_fmt() {
-    unformatted=""
-    for f in $(shell find . -type f -name '*.tf' -not -path ./**/.terraform/*); do
+    terraform_files="$(find . -type f -name '*.tf' -not -path -- **/.terraform/*)"
+    unformatted_files=""
+
+    for f in ${terraform_files}; do
         if ! terraform fmt "$f" -check=true >> /dev/null; then
-            unformatted="${unformatted}\\n${f}"
+            unformatted_files="${unformatted_files}\\n${f}"
         fi
     done
     if [ ! -z "${unformatted}" ]; then
-        print failure "terraform fmt:${unformatted}"
+        print failure "terraform fmt:${unformatted_files}"
         exit 1
     fi
     print success "terraform fmt"
