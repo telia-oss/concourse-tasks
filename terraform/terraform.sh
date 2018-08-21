@@ -99,14 +99,15 @@ main() {
     fi
 
     setup
-    for directory in ${directories}; do
-        if [ ! -d "${DIR}/source/${directory}" ]; then
+    for directory in "source/"$directories; do
+        if [ ! -d "${DIR}/${directory}" ]; then
             print failure "Directory not found: ${directory}"
             exit 1
         fi
-        cd "${DIR}/source/${directory}"
+
+        cd "${DIR}/${directory}"
         print header "Current directory: ${directory}"
-        if [ "$cache" = "true" ];then
+        if [ "${cache}" = "true" ];then
             setup_cache "${directory}"
         fi
         case "${command}" in
