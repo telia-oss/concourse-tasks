@@ -1,14 +1,14 @@
 #!/bin/sh
 
-set -e
+set -eo pipefail
 
 print() {
-    local GREEN='\033[1;32m'
-    local YELLOW='\033[1;33m'
-    local RED='\033[0;31m'
-    local NC='\033[0m'
-    local BOLD='\e[1m'
-    local REGULAR='\e[0m'
+    GREEN='\033[1;32m'
+    YELLOW='\033[1;33m'
+    RED='\033[0;31m'
+    NC='\033[0m'
+    BOLD='\e[1m'
+    REGULAR='\e[0m'
     case "$1" in
         'failure' ) echo -e "${RED}✗ $2${NC}" ;;
         'success' ) echo -e "${GREEN}√ $2${NC}" ;;
@@ -28,19 +28,11 @@ setup_cache() {
     export TF_DATA_DIR="${DIR}/terraform-cache/${1}"
 
     mkdir -p "${TF_DATA_DIR}"
-    if [ -z "$(ls -A ${DIR}/terraform-cache/${1})" ]; then
+    if [ -z "$(ls -A "${DIR}/terraform-cache/${1}")" ]; then
         print warning "cache enabled but empty (fresh worker)"
     else
         print success "cache enabled and found existing cache"
     fi
-}
-
-terraform_fmt() {
-    if ! terraform fmt -check=true >> /dev/null; then
-        print failure "terraform fmt (Some files need to be formatted, run 'terraform fmt' to fix.)"
-        exit 1
-    fi
-    print success "terraform fmt"
 }
 
 terraform_get() {
@@ -50,8 +42,31 @@ terraform_get() {
 }
 
 terraform_init() {
-    terraform init -input=false -lock-timeout=$lock_timeout >> /dev/null
+    terraform init -input=false -lock-timeout="${lock_timeout}" >> /dev/null
     print success "terraform init"
+}
+
+terraform_fmt() {
+    find . -type f -name '*.tf' -not -path './**/.terraform/*' | while read f; do
+        if ! terraform fmt -check=true "${f}" >> /dev/null; then
+            print failure "terraform fmt (Some files need to be formatted, run 'terraform fmt' to fix.)"
+            exit 1
+        fi
+    done
+    print success "terraform fmt"
+}
+
+terraform_test() {
+    terraform_fmt
+    terraform_get
+    terraform validate
+    print success "terraform validate"
+}
+
+terraform_test_module() {
+    terraform_fmt
+    terraform validate -check-variables=false
+    print success "terraform validate (not including variables)"
 }
 
 terraform_plan() {
@@ -66,54 +81,41 @@ terraform_plan() {
 
 terraform_apply() {
     terraform_init
-    terraform apply -refresh=true -auto-approve=true -lock-timeout=$lock_timeout
+    terraform apply -refresh=true -auto-approve=true -lock-timeout="${lock_timeout}"
     # Fails if there is no output (which is not really a failure)
     set +e
-    terraform output -json > ${DIR}/terraform/output.json
+    terraform output -json > "${DIR}/terraform/output.json"
     set -e
 }
 
-terraform_test_module() {
-    terraform_fmt
-    terraform_get
-    terraform validate -check-variables=false
-    print success "terraform validate (not including variables)"
-}
-
-terraform_test() {
-    terraform_fmt
-    terraform_get
-    terraform validate
-    print success "terraform validate"
-}
-
 main() {
-    if [ -z "$command" ]; then
+    if [ -z "${command}" ]; then
         echo "Command is a required parameter and must be set."
         exit 1
     fi
-    if [ -z "$directories" ]; then
+    if [ -z "${directories}" ]; then
         echo "No directories provided. Please set the parameter."
         exit 1
     fi
 
     setup
-    for directory in $directories; do
-        if [ ! -d "$DIR/source/$directory" ]; then
-            print failure "Directory not found: $directory"
+    for directory in "source/"$directories; do
+        if [ ! -d "${DIR}/${directory}" ]; then
+            print failure "Directory not found: ${directory}"
             exit 1
         fi
-        cd $DIR/source/$directory
-        print header "Current directory: $directory"
-        if [ "$cache" = "true" ];then
-            setup_cache "$directory"
+
+        cd "${DIR}/${directory}"
+        print header "Current directory: ${directory}"
+        if [ "${cache}" = "true" ];then
+            setup_cache "${directory}"
         fi
-        case "$command" in
+        case "${command}" in
             'test'        ) terraform_test ;;
             'test-module' ) terraform_test_module ;;
             'plan'        ) terraform_plan ;;
             'apply'       ) terraform_apply ;;
-            *             ) echo "Command not supported: $command" && exit 1;;
+            *             ) echo "Command not supported: ${command}" && exit 1;;
         esac
     done
 }
