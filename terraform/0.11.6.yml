@@ -24,6 +24,7 @@ params:
   access_key:
   secret_key:
   session_token:
+  access_token:
 
 run:
   path: common-tasks/terraform/terraform.sh
