@@ -19,14 +19,41 @@ print() {
 
 setup() {
     export DIR="$PWD"
+    export TMPDIR=${TMPDIR:-/tmp}
     export AWS_ACCESS_KEY_ID="${access_key}"
     export AWS_SECRET_ACCESS_KEY="${secret_key}"
     export AWS_SESSION_TOKEN="${session_token}"
 
-    if [ "${access_token}" != "" ]; then
+    if [ ! -z "${github_access_token}" ]; then
         rm -f "${HOME}"/.netrc
         echo "default login x-oauth-basic password ${access_token}" > "${HOME}"/.netrc
     fi
+
+    if [ ! -z "${github_private_key}" ]; then
+        setup_ssh
+    fi
+}
+
+setup_ssh() {
+    # Source/credit: https://github.com/jtarchie/github-pullrequest-resource/blob/master/assets/common.sh
+    local private_key_path=$TMPDIR/git-private-key
+    echo "${github_private_key}" > $private_key_path
+
+    if [ -s $private_key_path ]; then
+        chmod 0600 $private_key_path
+
+        eval $(ssh-agent) >/dev/null 2>&1
+        trap "kill $SSH_AGENT_PID" 0
+
+        SSH_ASKPASS=$DIR/common-tasks/terraform/askpass.sh DISPLAY= ssh-add $private_key_path >/dev/null
+
+        mkdir -p ~/.ssh
+        cat > ~/.ssh/config <<EOF
+StrictHostKeyChecking no
+LogLevel quiet
+EOF
+        chmod 0600 ~/.ssh/config
+  fi
 }
 
 setup_cache() {
