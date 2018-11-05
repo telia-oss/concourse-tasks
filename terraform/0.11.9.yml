@@ -1,0 +1,30 @@
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: hashicorp/terraform
+    tag: "0.11.9"
+
+inputs:
+- name: source
+- name: common-tasks
+
+outputs:
+- name: terraform
+
+caches:
+- path: terraform-cache
+
+params:
+  command:
+  directories:
+  cache: "false"
+  lock_timeout: 5m
+  access_key:
+  secret_key:
+  session_token:
+  access_token:
+
+run:
+  path: common-tasks/terraform/terraform.sh
