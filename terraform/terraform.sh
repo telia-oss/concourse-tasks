@@ -32,6 +32,22 @@ setup() {
     if [ ! -z "${github_private_key}" ]; then
         setup_ssh
     fi
+
+    if [ ! -z "$tf_vars" ]; then
+        setup_terraform_variables
+    fi
+}
+
+setup_terraform_variables() {
+    # install jq
+    JQ_URL="https://circle-downloads.s3.amazonaws.com/circleci-images/cache/linux-amd64/jq-latest" 
+    curl --silent --show-error --location --fail --retry 3 --output /usr/bin/jq $JQ_URL
+    chmod +x /usr/bin/jq
+    # export Terraform environment variables
+    for obj in $(echo "${tf_vars}" | jq -c '.[]'); do
+        TF_VAR="$(echo ${obj} | jq -r "to_entries|map(\"\(.key)=\(.value|tostring)\")|.[]")"
+        export $TF_VAR
+    done
 }
 
 setup_ssh() {

@@ -45,6 +45,9 @@ as `common-tasks/terraform` to tasks in our job. So to use the task we simply de
       params:
         command: test
         cache: true
+        tf_vars:
+          - TF_VAR_foo: ((foo-secret))
+          - TF_VAR_bar: ((bar-secret))
         directories: |
           terraform/concourse
           terraform/vault
