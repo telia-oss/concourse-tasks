@@ -1,2 +1,5 @@
 **/.terraform
 *.tfstate*
+
+#InteliJ IDE files
+.idea/
