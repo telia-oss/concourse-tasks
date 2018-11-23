@@ -119,6 +119,10 @@ terraform_test() {
     print success "terraform validate"
 }
 
+git_log_message(){
+    git log -1 > "$DIR/terraform/git_log.txt"
+}
+
 main() {
     if [ -z "$command" ]; then
         echo "Command is a required parameter and must be set."
@@ -144,7 +148,8 @@ main() {
             'test'        ) terraform_test ;;
             'test-module' ) terraform_test_module ;;
             'plan'        ) terraform_plan ;;
-            'apply'       ) terraform_apply ;;
+            'apply'       ) terraform_apply 
+                            git_log_message ;;
             *             ) echo "Command not supported: $command" && exit 1;;
         esac
     done
