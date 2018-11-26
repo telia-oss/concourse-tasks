@@ -1,0 +1,21 @@
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: teliaoss/concourse-awscli
+    tag: "latest"
+
+inputs:
+- name: common-tasks
+
+params:
+  cluster:
+  service:
+  AWS_ACCESS_KEY_ID:
+  AWS_SECRET_ACCESS_KEY:
+  AWS_SESSION_TOKEN:
+  AWS_DEFAULT_REGION:
+
+run:
+  path: common-tasks/aws/check_task_deployment/task.sh
