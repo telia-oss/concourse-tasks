@@ -23,6 +23,7 @@ setup() {
     export AWS_ACCESS_KEY_ID="${access_key}"
     export AWS_SECRET_ACCESS_KEY="${secret_key}"
     export AWS_SESSION_TOKEN="${session_token}"
+    export AWS_DEFAULT_REGION="eu-west-1"
 
     if [ ! -z "${github_access_token}" ]; then
         rm -f "${HOME}"/.netrc
