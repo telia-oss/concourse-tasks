@@ -48,12 +48,12 @@ setup_ssh() {
 
         SSH_ASKPASS=$DIR/common-tasks/terraform/askpass.sh DISPLAY= ssh-add $private_key_path >/dev/null
 
-        mkdir -p ~/.ssh
-        cat > ~/.ssh/config <<EOF
+    mkdir -p ~/.ssh
+    cat > ~/.ssh/config <<EOF
 StrictHostKeyChecking no
 LogLevel quiet
 EOF
-        chmod 0600 ~/.ssh/config
+    chmod 0600 ~/.ssh/config
   fi
 }
 
