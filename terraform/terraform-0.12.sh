@@ -89,7 +89,7 @@ terraform_init() {
 
 terraform_plan() {
     terraform_init
-    terraform plan -lock=false -no-color | tee "${DIR}/terraform/full-plan"
+    terraform plan -lock=false -no-color $command_params | tee "${DIR}/terraform/full-plan"
 
     # Create a sanitized plan for Github comments
     echo "\`\`\`diff" > "${DIR}/terraform/plan"
@@ -99,7 +99,7 @@ terraform_plan() {
 
 terraform_apply() {
     terraform_init
-    terraform apply -refresh=true -auto-approve=true -lock-timeout=$lock_timeout
+    terraform apply -refresh=true -auto-approve=true -lock-timeout=$lock_timeout $command_params
     # Fails if there is no output (which is not really a failure)
     set +e
     terraform output -json > ${DIR}/terraform/output.json
