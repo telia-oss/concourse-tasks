@@ -92,7 +92,8 @@ terraform_plan() {
     terraform plan -lock=false -no-color $command_params | tee "${DIR}/terraform/full-plan"
 
     # Create a sanitized plan for Github comments
-    echo "\`\`\`diff" > "${DIR}/terraform/plan"
+    echo "### ${1}" >> "${DIR}/terraform/plan"
+    echo "\`\`\`diff" >> "${DIR}/terraform/plan"
     sed -n -e '/------------------------------------------------------------------------/,$p' "${DIR}/terraform/full-plan" >> "${DIR}/terraform/plan"
     echo "\`\`\`" >> "${DIR}/terraform/plan"
 }
@@ -136,7 +137,7 @@ main() {
         fi
         case "$command" in
             'test'        ) terraform_test ;;
-            'plan'        ) terraform_plan ;;
+            'plan'        ) terraform_plan "$directory" ;;
             'apply'       ) terraform_apply ;;
             *             ) echo "Command not supported: $command" && exit 1;;
         esac
