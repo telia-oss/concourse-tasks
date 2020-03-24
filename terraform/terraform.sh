@@ -27,7 +27,7 @@ setup() {
 
     if [ ! -z "${github_access_token}" ]; then
         cat > "${HOME}"/.git-credentials <<EOF
-https://x-oauth-basic:${github_access_token}@github.com
+https://x-oauth-basic:${github_access_token}@api.github.com
 EOF
         git config --global credential.helper store
         print success "configured git credential helper"
