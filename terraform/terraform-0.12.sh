@@ -27,7 +27,13 @@ setup() {
 
     if [ ! -z "${github_access_token}" ]; then
         cat > "${HOME}"/.netrc <<EOF
-machine github.com login x-oauth-basic password ${github_access_token}
+machine github.com
+login x-oauth-basic
+password ${github_access_token}
+
+machine api.github.com
+login x-oauth-basic
+password ${github_access_token}
 EOF
         print success "configured github_access_token"
     fi
