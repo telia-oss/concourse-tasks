@@ -26,14 +26,15 @@ setup() {
     export AWS_DEFAULT_REGION="eu-west-1"
 
     if [ ! -z "${github_access_token}" ]; then
-        cat > "${HOME}"/.git-credentials <<EOF
-https://x-oauth-basic:${github_access_token}@github.com
+        cat > "${HOME}"/.netrc <<EOF
+machine github.com login x-oauth-basic password ${github_access_token}
 EOF
-        git config --global credential.helper store
+        print success "configured github_access_token"
     fi
 
     if [ ! -z "${github_private_key}" ]; then
         setup_ssh
+        print success "configured github_private_key"
     fi
 }
 

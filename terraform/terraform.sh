@@ -29,12 +29,12 @@ setup() {
         cat > "${HOME}"/.netrc <<EOF
 machine github.com login x-oauth-basic password ${github_access_token}
 EOF
-        print success "configured github access token"
+        print success "configured github_access_token"
     fi
 
     if [ ! -z "${github_private_key}" ]; then
         setup_ssh
-        print success "configured ssh private key"
+        print success "configured github_private_key"
     fi
 }
 
