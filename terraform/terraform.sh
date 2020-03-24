@@ -25,12 +25,21 @@ setup() {
     export AWS_SESSION_TOKEN="${session_token}"
 
     if [ ! -z "${github_access_token}" ]; then
-        rm -f "${HOME}"/.netrc
-        echo "default login x-oauth-basic password ${access_token}" > "${HOME}"/.netrc
+        cat > "${HOME}"/.netrc <<EOF
+machine github.com
+login x-oauth-basic
+password ${github_access_token}
+
+machine api.github.com
+login x-oauth-basic
+password ${github_access_token}
+EOF
+        print success "configured github_access_token"
     fi
 
     if [ ! -z "${github_private_key}" ]; then
         setup_ssh
+        print success "configured github_private_key"
     fi
 }
 
@@ -46,14 +55,14 @@ setup_ssh() {
         trap "kill $SSH_AGENT_PID" 0
 
         SSH_ASKPASS=$DIR/common-tasks/terraform/askpass.sh DISPLAY= ssh-add $private_key_path >/dev/null
-
-        mkdir -p ~/.ssh
-        cat > ~/.ssh/config <<EOF
+    fi
+    
+    mkdir -p ~/.ssh
+    cat > ~/.ssh/config <<EOF
 StrictHostKeyChecking no
 LogLevel quiet
 EOF
-        chmod 0600 ~/.ssh/config
-  fi
+    chmod 0600 ~/.ssh/config
 }
 
 setup_cache() {
