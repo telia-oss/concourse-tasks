@@ -26,11 +26,9 @@ setup() {
     export TF_LOG="DEBUG"
 
     if [ ! -z "${github_access_token}" ]; then
-        cat > "${HOME}"/.git-credentials <<EOF
-https://x-oauth-basic:${github_access_token}@api.github.com
+        cat > "${HOME}"/.netrc <<EOF
+machine github.com login x-oauth-basic password ${github_access_token}
 EOF
-        git config --global credential.helper store
-        echo "default login x-oauth-basic password ${github_access_token}" > "${HOME}"/.netrc
         print success "configured github access token"
     fi
 
