@@ -29,10 +29,12 @@ setup() {
 https://x-oauth-basic:${github_access_token}@github.com
 EOF
         git config --global credential.helper store
+        print success "configured git credential helper"
     fi
 
     if [ ! -z "${github_private_key}" ]; then
         setup_ssh
+        print success "configured ssh"
     fi
 }
 
