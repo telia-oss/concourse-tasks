@@ -48,14 +48,14 @@ setup_ssh() {
         trap "kill $SSH_AGENT_PID" 0
 
         SSH_ASKPASS=$DIR/common-tasks/terraform/askpass.sh DISPLAY= ssh-add $private_key_path >/dev/null
-
-        mkdir -p ~/.ssh
-        cat > ~/.ssh/config <<EOF
+    fi
+    
+    mkdir -p ~/.ssh
+    cat > ~/.ssh/config <<EOF
 StrictHostKeyChecking no
 LogLevel quiet
 EOF
-        chmod 0600 ~/.ssh/config
-  fi
+    chmod 0600 ~/.ssh/config
 }
 
 setup_cache() {
