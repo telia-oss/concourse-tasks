@@ -25,8 +25,9 @@ setup() {
     export AWS_SESSION_TOKEN="${session_token}"
 
     if [ ! -z "${github_access_token}" ]; then
-        rm -f "${HOME}"/.netrc
-        echo "default login x-oauth-basic password ${access_token}" > "${HOME}"/.netrc
+        cat > "${HOME}"/.git-credentials <<EOF
+https://x-oauth-basic:${github_access_token}@github.com
+EOF
     fi
 
     if [ ! -z "${github_private_key}" ]; then
