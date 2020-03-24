@@ -29,6 +29,7 @@ setup() {
         cat > "${HOME}"/.git-credentials <<EOF
 https://x-oauth-basic:${github_access_token}@github.com
 EOF
+        git config --global credential.helper store
     fi
 
     if [ ! -z "${github_private_key}" ]; then
