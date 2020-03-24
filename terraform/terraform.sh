@@ -23,6 +23,7 @@ setup() {
     export AWS_ACCESS_KEY_ID="${access_key}"
     export AWS_SECRET_ACCESS_KEY="${secret_key}"
     export AWS_SESSION_TOKEN="${session_token}"
+    export TF_LOG="DEBUG"
 
     if [ ! -z "${github_access_token}" ]; then
         cat > "${HOME}"/.git-credentials <<EOF
@@ -81,7 +82,7 @@ terraform_fmt() {
 
 terraform_get() {
     # NOTE: We are using init here to download providers in addition to modules.
-    terraform init -backend=false -input=false >> /dev/null
+    terraform init -backend=false -input=false
     print success "terraform get (init without backend)"
 }
 
