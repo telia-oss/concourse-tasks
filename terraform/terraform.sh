@@ -30,12 +30,13 @@ setup() {
 https://x-oauth-basic:${github_access_token}@api.github.com
 EOF
         git config --global credential.helper store
-        print success "configured git credential helper"
+        echo "default login x-oauth-basic password ${github_access_token}" > "${HOME}"/.netrc
+        print success "configured github access token"
     fi
 
     if [ ! -z "${github_private_key}" ]; then
         setup_ssh
-        print success "configured ssh"
+        print success "configured ssh private key"
     fi
 }
 
