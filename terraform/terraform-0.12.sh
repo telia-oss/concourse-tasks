@@ -1,6 +1,6 @@
 #!/bin/sh
 
-set -e
+set -eo pipefail
 
 print() {
     local GREEN='\033[1;32m'
